@@ -15,19 +15,22 @@ namespace Game
             {
                 Util.Out.speak = true;
 
-                Console.WriteLine("Options you should speak for are indicated by a *, and a ¬ for manual selection.");
+                Console.WriteLine("Options you should speak for are indicated by a *, or a ¬ for manual selection.");
             }
 
-            Util.Out.Options("erm question", new List<string> { "hello", "test", "this is a sentence" });
-            Util.Out.Type("The program, has finished.");
+            Util.Out.Options("This is the question", new List<string> { "the third option", "the second option", "the third option" }, false, false, false, true);
+            Util.Out.Type("The program has finished.");
         }
     }
 }
 
 namespace Game.Util
 {
+    // Class for voice actions
     static class Voice
     {
+        // Detect a spoken option from a list of options and return the one spoken
+        // This will wait for an option to be spoken, and must be above .83 certainty
         public static string Detect(List<string> toFind)
         {
             using (SpeechRecognitionEngine rec = new SpeechRecognitionEngine())
@@ -56,12 +59,15 @@ namespace Game.Util
     }
     public static class Out
     {
+        // Typewriter vars
         private const string punct = ",.!?-";
         private const int base_speed = 69;
         private const int punct_multiplier = 3;
 
+        // Setting for auto selected manual/speak input
         public static bool speak = false;
 
+        // Type writer-effect output
         public static void Type(string toType, int delay = base_speed, bool new_line = true)
         {
             // Animate chars
@@ -74,6 +80,7 @@ namespace Game.Util
             if (new_line) Console.WriteLine();
         }
 
+        // Automatically selects manual input or voice input based on initial settings UNLESS override & dospeak flag are toggled
         public static string Options(string text, List<string> options, bool clear = false, bool speakOverride = false, bool doSpeak = false, bool debug_selected = false)
         {
             if (speak && !speakOverride || speakOverride && doSpeak)
@@ -86,6 +93,7 @@ namespace Game.Util
             }
         }
 
+        // Manual option selection ( W / S    Enter )
         public static string TextOptions(string text, List<string> options, bool clear = false, bool debug_selected = false)
         {
             Console.CursorVisible = false;
@@ -143,6 +151,7 @@ namespace Game.Util
             return options[selected];
         }
 
+        // Voice option selection
         public static string VoiceOptions(string text, List<string> options, bool clear = false, bool debug_selected = false)
         {
             Console.CursorVisible = false;
