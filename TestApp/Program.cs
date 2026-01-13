@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Printing;
 using System.Speech.Recognition;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace Game
 {
@@ -10,22 +11,41 @@ namespace Game
     {
         static void Main(string[] args)
         {
+            // Run background listening thread for "the thing"
+            _ = Task.Run(() => Util.Voice.BackgroundDetect(new List<string> { "the thing" }, Found));
+
+            // Enable/Disable speak mode for the prompts
             Console.WriteLine("do speak-mode? (yes/no)");
+
             if (Console.ReadLine() == "yes")
             {
                 Util.Out.speak = true;
-
-                Console.WriteLine("Options you should speak for are indicated by a *, or a ¬ for manual selection.");
             }
 
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Options you should speak for are indicated by a *, or a ¬ for manual selection.\n");
+            Console.ForegroundColor = ConsoleColor.Gray;
+
+            // Output first option, dynamically selecting text/voice based on setting previously set
             Util.Out.Options("This is the question", new List<string> { "the first option", "the second option", "the third option" }, false, false, false, true);
             Util.Out.Type("The program has finished.");
+        }
+
+        static void Found()
+        {
+            Util.DLL.MessageBox(IntPtr.Zero, "You said the thing", "You said it!", 0x00040000 | 0x00000010);
         }
     }
 }
 
 namespace Game.Util
 {
+    static class DLL
+    {
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
+    }
     // Class for voice actions
     static class Voice
     {
@@ -54,6 +74,23 @@ namespace Game.Util
                     }
                 }
                 return null;
+            }
+        }
+
+        public static async Task BackgroundDetect(List<string> toFind, Action onFound, bool loop = false)
+        {
+            if (loop)
+            {
+                while (true)
+                {
+                    Detect(toFind);
+                    onFound();
+                }
+            }
+            else
+            {
+                Detect(toFind);
+                onFound();
             }
         }
     }
@@ -125,6 +162,7 @@ namespace Game.Util
                         Console.WriteLine(i == selected ? " > " + options[i] : "   " + options[i]);
                     }
                 }
+                Console.WriteLine();
 
                 if (first) first = false;
 
@@ -147,7 +185,7 @@ namespace Game.Util
             }
 
             Console.CursorVisible = true;
-            if (debug_selected) Console.WriteLine($"Selected: {options[selected]}");
+            if (debug_selected) Console.WriteLine($"Selected: {options[selected]}\n");
             return options[selected];
         }
 
@@ -164,10 +202,11 @@ namespace Game.Util
             {
                 Type("   " + options[i]);
             }
+            Console.WriteLine();
 
             Console.CursorVisible = true;
             string selected = Voice.Detect(options);
-            if (debug_selected) Console.WriteLine($"Selected: {selected}");
+            if (debug_selected) Console.WriteLine($"Selected: {selected}\n");
             return selected;
         }
     }
