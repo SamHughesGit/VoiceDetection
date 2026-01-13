@@ -18,7 +18,7 @@ namespace Game
                 Console.WriteLine("Options you should speak for are indicated by a *, or a ¬ for manual selection.");
             }
 
-            Util.Out.Options("This is the question", new List<string> { "the third option", "the second option", "the third option" }, false, false, false, true);
+            Util.Out.Options("This is the question", new List<string> { "the first option", "the second option", "the third option" }, false, false, false, true);
             Util.Out.Type("The program has finished.");
         }
     }
